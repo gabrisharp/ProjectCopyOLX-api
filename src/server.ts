@@ -4,15 +4,21 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import {resolve} from 'path';
-import apiRoutes from './routes/mainRoute';
+import mainRoute from './routes/mainRoute';
+import userRoute from './routes/userRoute';
+import adRoute from './routes/adRoute';
 import {error404, errorHandler} from './middlewares/errorHandler';
 
 dotenv.config();
 const port = process.env.PORT;
 
-mongoose.connect(process.env.DATABASE_URI as string)
+mongoose.connect(process.env.DATABASE_URI as string, {
+    authSource: 'admin',
+    user:process.env.DATABASE_USERNAME,
+    pass:process.env.DATABASE_PASSWORD
+})
     .then(()=>{ app.emit('connected')})
-    .catch((err)=>{console.log('ERROR DE CONEXAO\N', err.message)});
+    .catch((err)=>{console.log('ERROR DE CONEXAO\n', err.message)});
 mongoose.Promise = global.Promise;
 
 const app = express();
@@ -22,7 +28,10 @@ app.use(fileUpload());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(resolve(__dirname, '..', 'public')));
 
-app.use(apiRoutes);
+app.use(mainRoute);
+app.use('/user', userRoute);
+app.use('/ad', adRoute);
+
 app.use(error404);
 app.use(errorHandler);
 
