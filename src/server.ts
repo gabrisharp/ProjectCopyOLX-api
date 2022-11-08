@@ -11,7 +11,7 @@ const port = process.env.PORT;
 mongoose.connect(process.env.DATABASE_URI as string)
     .then(()=>{ console.log('Deu certo')})
     .catch((err)=>{console.log('ERROR DE CONEXAO\N', err.message)});
-
+mongoose.Promise = global.Promise;
 
 const app = express();
 
