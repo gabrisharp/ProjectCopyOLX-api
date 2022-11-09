@@ -32,8 +32,8 @@ app.use(mainRoute);
 app.use('/user', userRoute);
 app.use('/ad', adRoute);
 
-app.use(error404);
 app.use(errorHandler);
+app.use(error404);
 
 app.on('connected', ()=>{
     app.listen(port, ()=>{
