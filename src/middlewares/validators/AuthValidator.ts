@@ -27,3 +27,17 @@ export const register = checkSchema({
         errorMessage: 'State not filled'
     }
 });
+
+export const login = checkSchema({
+    email: {
+        isEmail: true,
+        normalizeEmail: true, //trim, all lowercase
+        errorMessage: 'Invalid email'
+    }, 
+    password: {
+        isLength: {
+            options: {min: 5}
+        },
+        errorMessage: 'Password needs at least 5 characters'
+    },
+});

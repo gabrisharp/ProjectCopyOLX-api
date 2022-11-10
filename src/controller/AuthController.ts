@@ -1,12 +1,26 @@
 import {Request, Response, NextFunction} from 'express';
 import {validationResult, matchedData} from 'express-validator';
-import ApiError from '../utils/ApiError';
 import * as UserService from '../services/UserService';
-import {iUser} from '../models/User';
 
 export const login = async (req: Request, res: Response, next: NextFunction) =>{
     try {
-        
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({error:'fields not valid', errors: errors.array()});
+        };
+        const {email, password} = matchedData(req);
+
+        const user = await UserService.findByEmail(email);
+        if(!user) return res.status(400).json({error:'Wrong credentials'});
+
+        if(await UserService.matchPassword(password, user.passwordHash)){
+            return res.status(400).json({error:'Wrong credentials'});
+        };
+        //token
+        user.token = await UserService.createToken(user.name);
+        await user.save();
+
+        return res.json({status:true, token: user.token, email: user.email});
     } catch (err) { next(err)}
 }
 
@@ -15,11 +29,11 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
         //Fields Erros validator
         const errors = validationResult(req);
         if(!errors.isEmpty()) {
-            throw new ApiError('Fields not valid', 400, errors.array());
+            return res.status(400).json({error: 'Fields Invalid', erorrs: errors.array()});
         };
         //Get the data from validator
         const data = matchedData(req);
-        const token = await UserService.createUser(data);
-        return res.json({status: true, token});
-    } catch (err) {console.log('I catch a error');next(err)}
+        const user = await UserService.createUser(data);
+        return res.json({status: true, token: user.token});
+    } catch (err) {next(err)}
 }

@@ -14,7 +14,7 @@ const modelSchema = new mongoose.Schema<iUser>({
     email:{type: String, required:true},
     state:{type: String, required:true},
     passwordHash:{type: String, required:true},
-    token:{type: String, required:true},
+    token:{type: String},
 });
 
 
