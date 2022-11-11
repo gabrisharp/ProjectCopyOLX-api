@@ -7,6 +7,7 @@ export interface iUser{
     passwordHash: string,
     token: string,
     state: string,
+    id?:string
 }
 
 const modelSchema = new mongoose.Schema<iUser>({

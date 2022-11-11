@@ -3,7 +3,7 @@ mongoose.Promise = global.Promise;
 
 type image = {
     url:string,
-    default:boolean
+    default:boolean,
 }
 
 export interface iAd{
@@ -17,7 +17,8 @@ export interface iAd{
     priceNegotiable: boolean,
     description: string,
     views: number,
-    status: string
+    status: boolean,
+    id?:string
 }
 
 const modelSchema = new mongoose.Schema<iAd>({
@@ -29,9 +30,9 @@ const modelSchema = new mongoose.Schema<iAd>({
     title:{type: String, required:true},
     price: {type: Number, required:true},
     priceNegotiable: {type: Boolean, required:true},
-    description: {type: String, required:true},
+    description: {type: String},
     views: {type: Number, required:true},
-    status: {type: String, required:true},
+    status: {type: Boolean, required:true},
 });
 
 
