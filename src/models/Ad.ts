@@ -25,7 +25,7 @@ const modelSchema = new mongoose.Schema<iAd>({
     idUser:{type: String, required:true},
     state:{type: String, required:true},
     category:{type: String, required:true},
-    images:{type: [Object], required:true},
+    images:{type: [Object]},
     createdAt:{type: Date, required:true},
     title:{type: String, required:true},
     price: {type: Number, required:true},

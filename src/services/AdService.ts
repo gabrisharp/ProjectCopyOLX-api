@@ -1,9 +1,20 @@
+import { UploadedFile } from 'express-fileupload';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import Ad,{iAd} from '../models/Ad';
 import { iUser } from '../models/User';
-import mongoose from 'mongoose';
-import { UploadedFile } from 'express-fileupload';
 import {v4 as uuid} from 'uuid'
 import jimp from 'jimp';
+
+dotenv.config();
+const DEFAULT_IMAGE = `${process.env.HOST}/media/default.jpg`;
+
+export type filter={
+    title?: {'$regex': string, '$options': string},
+    category?: string ,
+    state?: string,
+    idUser?:string
+};
 
 const addImage = async (buffer:Buffer) =>{
     let newName = `${uuid()}.jpg`;
@@ -58,4 +69,49 @@ export const addImages = async (ad:iAd, img:UploadedFile | UploadedFile[]) =>{
         }
     }
     if(ad.images.length >0) ad.images[0].default = true;
+}
+
+export const getAds = async (filter:filter, opt?:{ sort:string, offset:number, limit:number }) =>{
+ 
+    const totalAds = await Ad.find({...filter, status: true}).exec();
+    const total = totalAds.length;
+    let allAds:(mongoose.Document<unknown, any, iAd> & iAd & {
+        _id: mongoose.Types.ObjectId;
+    })[];
+    
+    if(opt){
+        allAds = await Ad.find({...filter, status:true })
+            .sort({ dateCreated: (opt.sort=='desc'? -1: 1)})
+            .skip(opt.offset)
+            .limit(opt.limit)
+            .exec();
+    }else{ allAds = await Ad.find({... filter, status: true})}
+    
+    let list: any[] =[];
+    allAds.forEach( ad =>{
+        let imageUrl:string;
+        let defaultImg = ad.images.find( e => e.default);
+        if(defaultImg){
+            imageUrl = `${process.env.HOST}/media/${defaultImg.url}`;
+        }else{
+            imageUrl = DEFAULT_IMAGE;
+        }
+        list.push({
+            id:ad._id.toString(),
+            title: ad.title,
+            price: ad.price,
+            priceNegotiable: ad.priceNegotiable,
+            image: imageUrl,
+        })
+    });
+    return {list, total};
+}
+
+export const getById = async (id:string) =>{
+    const ad = await Ad.findById(id);
+    return ad;
+}
+
+export const increaseView = async (ad:iAd) =>{
+    ad.views++;
 }

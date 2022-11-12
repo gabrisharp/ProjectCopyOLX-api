@@ -1,4 +1,5 @@
 import {checkSchema} from 'express-validator';
+import {Types} from 'mongoose';
 
 export const add = checkSchema({
     token:{
@@ -14,8 +15,13 @@ export const add = checkSchema({
     },
     catg:{
         notEmpty: true,
-        trim: true,
-        errorMessage: 'Categories not uninformed',
+        custom: { options: value =>{ 
+            if(!Types.ObjectId.isValid(value)){
+                throw new Error ('Invalid category code');
+            }
+            return value;
+        }},
+        errorMessage: 'Categories uninformed',
     },
     price: {
         optional: true,
@@ -33,5 +39,17 @@ export const add = checkSchema({
     }, 
     desc:{
         optional: true,
+    }
+});
+
+export const getItem = checkSchema({
+    id:{
+        notEmpty: true,
+        custom: { options: value =>{
+            if(!Types.ObjectId.isValid(value)){
+                throw new Error('Invalid Id');
+            }return value;
+        }},
+        errorMessage: 'Id must be informed'
     }
 });

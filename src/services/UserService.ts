@@ -65,6 +65,10 @@ export const findByToken = async (token:string) =>{
     return await User.findOne({token});
 }
 
+export const findById = async (id:string) => {
+    return await User.findById(id);
+}
+
 export const matchPassword = async (password:string, passwordHash:string)=>{
     return await bcrypt.compare(password, passwordHash);
 }
