@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 mongoose.Promise = global.Promise;
 
-type image = {
+export type image = {
     url:string,
     default:boolean,
 }

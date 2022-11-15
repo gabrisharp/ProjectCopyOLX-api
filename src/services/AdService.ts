@@ -1,7 +1,9 @@
 import { UploadedFile } from 'express-fileupload';
+import { unlink } from 'fs';
+import {resolve} from 'path';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import Ad,{iAd} from '../models/Ad';
+import Ad,{iAd, image} from '../models/Ad';
 import { iUser } from '../models/User';
 import {v4 as uuid} from 'uuid'
 import jimp from 'jimp';
@@ -24,7 +26,7 @@ const addImage = async (buffer:Buffer) =>{
     let tmpImg = await jimp.read(buffer);
     tmpImg.cover(500, 500) //Proporcional 500x500
         .quality(80)        
-        .write(`./public/media/${newName}.jpg`);
+        .write(`./public/media/${newName}`);
     return newName;
 }
 
@@ -146,4 +148,33 @@ export const editAd = async (id:string, token:string, updates:adUpdates) =>{
     if(user?._id.toString() !== ad?.idUser) throw new ApiError('You cannot edit other users ads', 400);
 
     await Ad.findByIdAndUpdate(id, {$set: updates});
+}
+
+export const deleteImgs = async (id:string, token:string, imgArray: string[]) => {
+    const ad = await getById(id);
+    if(!ad) return false;
+    const user = await UserService.findByToken(token);
+    
+    if(user?._id.toString() !== ad.idUser) throw new ApiError('You cannot edit other users ads', 400);
+    
+    let collection = ad.images;
+    let newImgs:image[] = [];
+    
+    collection.forEach( img =>{
+        imgArray.forEach( url =>{
+            if (img.url !== url) { newImgs.push(img)}else{
+                const path = resolve(__dirname, '..', '..', 'public','media', url);       
+                unlink(path, err => {
+                    console.log(err);
+                    if(err) throw new ApiError('Error ao deletar a imagem',500)
+                });
+            }
+        })
+    })
+
+    ad.images = newImgs;
+    if(ad.images.length >0) ad.images[0].default = true;
+    
+    await ad.save();
+    return newImgs;
 }

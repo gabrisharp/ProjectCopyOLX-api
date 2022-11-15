@@ -27,6 +27,7 @@ app.use(cors());
 app.use(fileUpload());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(resolve(__dirname, '..', 'public')));
+app.use(express.json()); // Use body json into request
 
 app.use(mainRoute);
 app.use('/user', userRoute);

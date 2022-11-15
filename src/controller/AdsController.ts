@@ -1,5 +1,6 @@
 import {Request, Response, NextFunction} from 'express';
 import {validationResult, matchedData} from 'express-validator';
+import { unlink } from 'fs';
 import dotenv from 'dotenv';
 
 import * as UserService from '../services/UserService'
@@ -145,5 +146,23 @@ export const editAction = async (req: Request, res: Response, next: NextFunction
 
         return res.json(ad);
 
+    } catch (err) { next(err)}
+}
+
+export const deleteImg = async (req: Request, res: Response, next: NextFunction) =>{
+    try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){ 
+            return res.status(400).json({error: 'Invalid fields', errors:errors.array()});
+        }
+        let {id, token} = matchedData(req);
+
+        if(!Array.isArray(req.body.url)){
+            return res.status(400).json({error:'Missing Url of images to delete'});
+        } 
+        const url = req.body.url as string[];
+        const actualImgs = await AdService.deleteImgs(id, token, url);
+        
+        return res.json(actualImgs);
     } catch (err) { next(err)}
 }
