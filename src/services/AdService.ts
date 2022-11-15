@@ -5,6 +5,9 @@ import Ad,{iAd} from '../models/Ad';
 import { iUser } from '../models/User';
 import {v4 as uuid} from 'uuid'
 import jimp from 'jimp';
+import Category from '../models/Category';
+import ApiError from '../utils/ApiError';
+import * as UserService from '../services/UserService';
 
 dotenv.config();
 const DEFAULT_IMAGE = `${process.env.HOST}/media/default.jpg`;
@@ -31,6 +34,12 @@ export const listByUser = async (id:mongoose.Types.ObjectId)=>{
 }
 
 export const createAdd = async (user:iUser, data:any)=>{
+    if(data.catg){
+        const catg = await Category.findById(data.catg);
+        if(!catg) throw new ApiError('Not Found Category', 404, [{catg: 'Category Not found'}]);
+    }
+    
+    
     const newAd = new Ad();
     newAd.status = true,
     newAd.idUser = user.id as string,
@@ -47,8 +56,8 @@ export const createAdd = async (user:iUser, data:any)=>{
 }   
 
 export const addImages = async (ad:iAd, img:UploadedFile | UploadedFile[]) =>{
-    const acceptTypes = ['image/jpeg', 'image/jpg', 'image.png'];
-
+    const acceptTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    
     if(Array.isArray(img)){ //img is a array?
         for(let i in img){
             if(acceptTypes.includes(img[i].mimetype)){
@@ -61,6 +70,7 @@ export const addImages = async (ad:iAd, img:UploadedFile | UploadedFile[]) =>{
         }
     }else{  //one image
         if(acceptTypes.includes(img.mimetype)){
+            
             let url = await addImage(img.data);
             ad.images.push({
                 url,
@@ -114,4 +124,26 @@ export const getById = async (id:string) =>{
 
 export const increaseView = async (ad:iAd) =>{
     ad.views++;
+}
+
+type adUpdates = {
+    title?: string,
+    category?: string,
+    price?: number,
+    priceNegotiable?: boolean,
+    description?: string,
+    status?: boolean,
+}
+
+export const editAd = async (id:string, token:string, updates:adUpdates) =>{
+    if(updates.category){
+        const catg = await Category.findById(updates.category);
+        if(!catg) throw new ApiError('Not Found Category', 404, [{catg: 'Category Not found'}]);
+    }
+    const ad = await getById(id);
+    const user = await UserService.findByToken(token);
+    
+    if(user?._id.toString() !== ad?.idUser) throw new ApiError('You cannot edit other users ads', 400);
+
+    await Ad.findByIdAndUpdate(id, {$set: updates});
 }

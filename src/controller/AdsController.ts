@@ -1,14 +1,13 @@
 import {Request, Response, NextFunction} from 'express';
 import {validationResult, matchedData} from 'express-validator';
-import {v4 as uuid} from 'uuid';
-import jimp from 'jimp';
+import dotenv from 'dotenv';
 
 import * as UserService from '../services/UserService'
 import * as AdService from '../services/AdService';
 import Category from '../models/Category';
 import State from '../models/State';
 
-
+dotenv.config();
 
 export const getCategories = async (req: Request, res: Response, next: NextFunction) =>{
     try {
@@ -95,13 +94,13 @@ export const getItem = async (req: Request, res: Response, next: NextFunction) =
         const state = await State.findById(ad.state);
         const catg = await Category.findById(ad.category);
         
-        let tempAd = (({id, title, price, priceNegotiable, description, views}) => 
-        ({id, title, price, priceNegotiable, description, views}))(ad);
+        let tempAd = (({id, title, price, priceNegotiable, description, views, createdAt}) => 
+        ({id, title, price, priceNegotiable, description, views, createdAt}))(ad);
         
 
         const result = {
             ...tempAd,
-            images: ad.images.map( img => img.url),
+            images: ad.images.map( img => `${process.env.HOST}/media/${img.url}`),
             category: catg?.toObject(),
             userInfo: {name: user?.name, email: user?.email},
             stateName: state?.name
@@ -119,6 +118,32 @@ export const getItem = async (req: Request, res: Response, next: NextFunction) =
 
 export const editAction = async (req: Request, res: Response, next: NextFunction) =>{
     try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){ 
+            return res.status(400).json({error: 'Invalid fields', errors:errors.array()});
+        }
+        let {id, title, token, status, price, priceneg, catg, desc} = matchedData(req);
+
+        const ad = await AdService.getById(id);
+        if(!ad) return res.status(404).json({error: 'Ad not found'})
         
+        //Adding images
+        if(req.files && req.files.img){
+            await AdService.addImages(ad, req.files.img);
+            console.log('images', ad.images);
+            await ad.save();
+        }
+
+        //Editing ads
+        await AdService.editAd(id, token, {
+            title, 
+            status, 
+            category:catg, 
+            price, 
+            priceNegotiable: priceneg, 
+            description: desc});
+
+        return res.json(ad);
+
     } catch (err) { next(err)}
 }

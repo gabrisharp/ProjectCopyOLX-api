@@ -8,6 +8,6 @@ const router = Router();
 router.post('/add',authMiddleware, adValidator.add, AdController.addAction);
 router.get('/list', authMiddleware, AdController.getList);
 router.get('/item', authMiddleware, adValidator.getItem ,AdController.getItem);
-router.post('/ad/:id', AdController.editAction);
+router.post('/:id', authMiddleware, adValidator.edit, AdController.editAction);
 
 export default router;

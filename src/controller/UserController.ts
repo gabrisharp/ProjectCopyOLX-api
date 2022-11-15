@@ -45,7 +45,7 @@ export const editInfo = async (req: Request, res: Response, next: NextFunction) 
         const data = matchedData(req);
         const user = UserService.findByToken(data.token);
         if(!user) return res.status(401).json({error:'Invalid token'});
-        let updates = {...data};
+        let updates = {...data}; //what have to be edited
         delete updates.token;
         await UserService.updateUser(data.token, updates);
         return res.json({status:true, updates:Object.keys(updates)});
