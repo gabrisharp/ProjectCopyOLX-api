@@ -9,7 +9,7 @@ Aplicado os seguintes requesitos:
 - Validação das requisições
 - Manipulação e tratamento de erros
 - Estrutura baseada em models, controllers e services
-- Utiliação do ORM sequelize para manipulação do banco de dados
+- Utilização do ORM sequelize para manipulação do banco de dados
 
 
 
