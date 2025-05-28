@@ -2,7 +2,7 @@
 
 Trata-se de uma API baseada na plataforma de anuncios olx. (Para estudo)
 
-Aplicado as seguintes requesitos:
+Aplicado os seguintes requesitos:
 - CRUD de usuário e anuncios
 - Autenticação JWT
 - Upload de Imagens no servidor
